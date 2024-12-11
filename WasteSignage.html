@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custom Waste Flow Signage</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin: 20px auto;
+        max-width: 1200px;
+    }
+
+    .left-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .right-panel {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    #image-selection, #template-selection {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    #canvas-area {
+        border: 1px solid #000;
+        width: 510px;
+        height: 680px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .content-area {
+        display: flex;
+        gap: 30px;
+        justify-content: center;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Waste Flow Signage Creator</h1>
+    <p>Create your custom signs for recycling, compost, and landfill!</p>
+  </header>
+
+  <main>
+    <section id="template-selection">
+        <h2>Select a Template</h2>
+        <div class="template-buttons">
+            <button class="template" id="compost-template">Compost</button>
+            <button class="template" id="recycling-template">Recycling</button>
+            <button class="template" id="landfill-template">Landfill</button>
+        </div>
+    </section>
+
+    <div class="content-area">
+        <section id="image-selection" style="max-width: 400px;">
+            <h2>Add Foodware Images</h2>
+            <p>Drag and drop any images you'd like to use on your sign, or upload photos of your own products!</p>
+            <div class="preset-images"></div>
+            <input type="file" id="upload-input" accept="image/*" style="display: none;">
+            <button id="upload-btn">Upload Custom Image</button>
+        </section>
+
+        <section id="design-canvas">
+            <h2>Your Sign Preview</h2>
+            <div id="canvas-area"></div>
+        </section>
+    </div>
+
+    <!-- Button to download the finished product -->
+    <section id="download">
+      <button>Download Sign as PDF</button>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2024 Waste Flow Signage Creator</p>
+  </footer>
+  <script src="app.js"></script>
+</body>
+</html>
+
+<!-- Pre-loaded foodware images -->
+<section id="preset-images">
+  <h2>Common Foodware Items</h2>
+  <div class="image-grid">
+  </div>
+  <style>
+    .image-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 15px;
+      padding: 20px;
+    }
+    
+    .preset-item {
+      width: 100%;
+      max-width: 100px;
+      height: auto;
+      cursor: move;
+      border: 2px solid transparent;
+      border-radius: 8px;
+      transition: transform 0.3s ease, border-color 0.3s;
+    }
+    
+    .preset-item:hover {
+      transform: scale(1.1);
+      border-color: #ffbb00;
+    }
+  </style>
+</section>
