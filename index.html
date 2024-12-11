@@ -47,12 +47,30 @@
         gap: 30px;
         justify-content: center;
     }
+
+    .header-logo {
+        height: 80px;
+        width: auto;
+    }
+
+    .header-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    }
   </style>
 </head>
 <body>
   <header>
-    <h1>Waste Flow Signage Creator</h1>
-    <p>Create your custom signs for recycling, compost, and landfill!</p>
+    <div class="header-container">
+      <img src="Albany Green_Cit Seal_CMYK" alt="Albany City Seal" class="header-logo">
+      <div>
+        <h1>Waste Flow Signage Creator</h1>
+        <p>Create your custom signs for recycling, compost, and landfill!</p>
+      </div>
+      <img src="Albany Green_Cit Seal_CMYK" alt="Albany City Seal" class="header-logo">
+    </div>
   </header>
 
   <main>
@@ -89,10 +107,14 @@
   <footer>
     <p>© 2024 Waste Flow Signage Creator</p>
   </footer>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <script>
+    window.jsPDF = window.jspdf.jsPDF;
+  </script>
   <script src="app.js"></script>
 </body>
 </html>
-
 <!-- Pre-loaded foodware images -->
 <section id="preset-images">
   <h2>Common Foodware Items</h2>

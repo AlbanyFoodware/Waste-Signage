@@ -89,88 +89,97 @@ document.querySelectorAll('#template-selection button').forEach(button => {
   });
   
   // Single makeInteractive function definition
-  function makeInteractive(img, canvasElement) {
+  function makeInteractive(img) {
+    // Variables for interactions
     let isDragging = false;
     let isResizing = false;
     let isRotating = false;
     let rotation = 0;
     let startX, startY;
     let originalWidth, originalHeight;
-    let lastAngle = 0;
 
-    // Create container
+    // Create container and controls wrapper
     const container = document.createElement('div');
     container.className = 'canvas-image-container';
     container.style.position = 'absolute';
-
-    // Create controls wrapper
+    container.style.transformOrigin = 'center center';
+    
+    // Create a wrapper for the image and controls that will rotate together
+    const rotationWrapper = document.createElement('div');
+    rotationWrapper.style.position = 'relative';
+    rotationWrapper.style.width = 'fit-content';
+    rotationWrapper.style.transformOrigin = 'center center';
+    
     const controlsWrapper = document.createElement('div');
-    controlsWrapper.className = 'controls-wrapper hidden';
+    controlsWrapper.className = 'controls-wrapper hidden'; // Start hidden
+    controlsWrapper.style.position = 'absolute';
+    controlsWrapper.style.top = '-30px';
+    controlsWrapper.style.left = '0';
+    controlsWrapper.style.width = '100%';
+    controlsWrapper.style.display = 'none'; // Start with display none
+    controlsWrapper.style.justifyContent = 'center';
+    controlsWrapper.style.gap = '5px';
 
     // Create delete button
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'delete-btn';
     deleteBtn.innerHTML = '×';
     deleteBtn.title = 'Delete';
-    deleteBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
+    deleteBtn.addEventListener('click', () => {
         container.remove();
     });
 
-    // Create rotate button
+    // Create rotate button with free rotation
     const rotateBtn = document.createElement('button');
     rotateBtn.className = 'rotate-btn';
     rotateBtn.innerHTML = '↻';
-    rotateBtn.title = 'Drag to rotate';
+    rotateBtn.title = 'Rotate';
 
-    // Calculate angle between two points
-    function getAngle(center, point) {
-        return Math.atan2(point.y - center.y, point.x - center.x) * 180 / Math.PI;
-    }
+    let startAngle = 0;
+    let currentRotation = 0;
 
-    // Rotation handlers
     rotateBtn.addEventListener('mousedown', (e) => {
         e.stopPropagation();
         isRotating = true;
         
         const rect = img.getBoundingClientRect();
-        const center = {
-            x: rect.left + rect.width / 2,
-            y: rect.top + rect.height / 2
-        };
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
         
-        lastAngle = getAngle(center, { x: e.clientX, y: e.clientY });
-        
-        function handleRotation(e) {
+        startAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
+
+        function onMouseMove(e) {
             if (!isRotating) return;
-
-            const currentAngle = getAngle(center, { x: e.clientX, y: e.clientY });
-            let deltaAngle = currentAngle - lastAngle;
-
-            if (deltaAngle > 180) deltaAngle -= 360;
-            if (deltaAngle < -180) deltaAngle += 360;
-
-            rotation += deltaAngle;
-            img.style.transform = `rotate(${rotation}deg)`;
-            controlsWrapper.style.transform = `rotate(${rotation}deg)`;
             
-            lastAngle = currentAngle;
+            const newAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
+            const angleDiff = newAngle - startAngle;
+            const degrees = angleDiff * (180 / Math.PI);
+            
+            currentRotation += degrees;
+            rotationWrapper.style.transform = `rotate(${currentRotation}deg)`;
+            
+            startAngle = newAngle;
         }
 
-        function stopRotation() {
+        function onMouseUp() {
             isRotating = false;
-            document.removeEventListener('mousemove', handleRotation);
-            document.removeEventListener('mouseup', stopRotation);
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
         }
 
-        document.addEventListener('mousemove', handleRotation);
-        document.addEventListener('mouseup', stopRotation);
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
     });
 
     // Create resize handle
     const resizeHandle = document.createElement('div');
     resizeHandle.className = 'resize-handle';
     resizeHandle.innerHTML = '↘️';
+    resizeHandle.style.position = 'absolute';
+    resizeHandle.style.bottom = '-10px';
+    resizeHandle.style.right = '-10px';
+    resizeHandle.style.cursor = 'se-resize';
+    resizeHandle.style.display = 'none'; // Start hidden
 
     // Add resize functionality
     resizeHandle.addEventListener('mousedown', (e) => {
@@ -231,28 +240,29 @@ document.querySelectorAll('#template-selection button').forEach(button => {
     // Selection functionality
     img.addEventListener('click', (e) => {
         e.stopPropagation();
-        document.querySelectorAll('.canvas-image-container').forEach(cont => {
-            if (cont !== container) {
-                cont.querySelector('.controls-wrapper').classList.add('hidden');
-                cont.classList.remove('selected');
-            }
+        // Hide all other control wrappers and resize handles
+        document.querySelectorAll('.controls-wrapper, .resize-handle').forEach(el => {
+            el.style.display = 'none';
         });
-        controlsWrapper.classList.remove('hidden');
-        container.classList.add('selected');
+        // Show this image's controls and resize handle
+        controlsWrapper.style.display = 'flex';
+        resizeHandle.style.display = 'block';
     });
 
     // Add elements to container
     controlsWrapper.appendChild(deleteBtn);
     controlsWrapper.appendChild(rotateBtn);
-    controlsWrapper.appendChild(resizeHandle);
-    container.appendChild(img);
-    container.appendChild(controlsWrapper);
+    
+    rotationWrapper.appendChild(img);
+    rotationWrapper.appendChild(controlsWrapper);
+    rotationWrapper.appendChild(resizeHandle);
+    container.appendChild(rotationWrapper);
 
-    // Click outside to deselect
+    // Click outside to hide controls
     document.addEventListener('click', (e) => {
         if (!container.contains(e.target)) {
-            controlsWrapper.classList.add('hidden');
-            container.classList.remove('selected');
+            controlsWrapper.style.display = 'none';
+            resizeHandle.style.display = 'none';
         }
     });
 
@@ -261,7 +271,7 @@ document.querySelectorAll('#template-selection button').forEach(button => {
 
   // Handle drop events on the canvas
   canvas.addEventListener('dragover', event => {
-    event.preventDefault(); // Allow dropping
+    event.preventDefault();
     console.log('Dragover event detected on canvas.');
   });
   
@@ -274,24 +284,23 @@ document.querySelectorAll('#template-selection button').forEach(button => {
     console.log('Image source retrieved from data transfer:', imageSrc);
   
     if (imageSrc) {
-      // Create a new image element
-      const img = document.createElement('img');
+      const img = new Image();
       img.src = imageSrc;
-      img.style.width = '100px'; // Default size
+      img.style.width = '100px';
       img.style.cursor = 'move';
       img.classList.add('canvas-item');
       
-      // Create interactive container
-      const container = makeInteractive(img, canvas);
-      
-      // Position container where the image was dropped
-      const rect = canvas.getBoundingClientRect();
-      container.style.left = `${event.clientX - rect.left - 50}px`;
-      container.style.top = `${event.clientY - rect.top - 50}px`;
-      
-      // Append container to canvas
-      canvas.appendChild(container);
-      console.log('New image added to canvas successfully');
+      img.onload = () => {
+        const container = makeInteractive(img, canvas);
+        
+        const rect = canvas.getBoundingClientRect();
+        container.style.position = 'absolute';
+        container.style.left = `${event.clientX - rect.left - 50}px`;
+        container.style.top = `${event.clientY - rect.top - 50}px`;
+        
+        canvas.appendChild(container);
+        console.log('New image added to canvas successfully');
+      }
     }
   });
   
@@ -299,13 +308,11 @@ document.querySelectorAll('#template-selection button').forEach(button => {
   const uploadButton = document.getElementById('upload-btn');
   const uploadInput = document.getElementById('upload-input');
   
-  // Show the file input when the upload button is clicked
   uploadButton.addEventListener('click', () => {
-    uploadInput.click(); // Programmatically trigger the file input
+    uploadInput.click();
     console.log('Upload button clicked, triggering file input.');
   });
   
-  // Updated upload handler
   uploadInput.addEventListener('change', (event) => {
     const file = event.target.files[0];
     const canvasElement = document.getElementById('canvas-area');
@@ -332,17 +339,15 @@ document.querySelectorAll('#template-selection button').forEach(button => {
 
       img.onerror = () => {
         console.error('Error loading image');
-        URL.revokeObjectURL(img.src); // Clean up the object URL
+        URL.revokeObjectURL(img.src);
       };
     } else {
       console.error('No file selected or canvas not found');
     }
   });
   
-  // Array of preset images
   const presetImages = Array.from({length: 22}, (_, i) => `Foodware Images/image${i + 1}.jpg`);
 
-  // Function to generate preset image gallery
   function generatePresetGallery() {
     const gallery = document.querySelector('.preset-images');
     
@@ -357,24 +362,65 @@ document.querySelectorAll('#template-selection button').forEach(button => {
     });
   }
 
-  // Initialize the gallery when the page loads
-  document.addEventListener('DOMContentLoaded', generatePresetGallery);
+  document.addEventListener('DOMContentLoaded', () => {
+    generatePresetGallery();
+    
+    const downloadButton = document.querySelector('#download button');
+    if (downloadButton) {
+        downloadButton.addEventListener('click', async () => {
+            try {
+                downloadButton.disabled = true;
+                downloadButton.textContent = 'Generating PDF...';
+                
+                const canvas = document.getElementById('canvas-area');
+                
+                // Hide all control wrappers and resize handles before capturing
+                const controls = canvas.querySelectorAll('.controls-wrapper, .resize-handle');
+                controls.forEach(control => {
+                    control.style.display = 'none';
+                });
+                
+                const canvasImage = await html2canvas(canvas, {
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#ffffff'
+                });
 
-  // Make preset images interactive
+                const doc = new jsPDF({
+                    orientation: 'portrait',
+                    unit: 'px',
+                    format: [510, 680]
+                });
+
+                const imgData = canvasImage.toDataURL('image/png');
+                doc.addImage(imgData, 'PNG', 0, 0, 510, 680);
+                
+                doc.save('waste-flow-sign.pdf');
+                
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+                alert('Error generating PDF. Please try again.');
+            } finally {
+                downloadButton.disabled = false;
+                downloadButton.textContent = 'Download Sign as PDF';
+            }
+        });
+    }
+  });
+
   document.querySelectorAll('.preset-item').forEach(img => {
     img.addEventListener('mousedown', event => {
         event.preventDefault();
         const canvasElement = document.getElementById('canvas-area');
         const rect = canvasElement.getBoundingClientRect();
         
-        // Create new image for the canvas
         const newImg = new Image();
         newImg.src = img.src;
         newImg.style.width = '100px';
         newImg.style.cursor = 'move';
         newImg.classList.add('canvas-item');
         
-        // Wait for image to load before adding to canvas
         newImg.onload = () => {
             const container = makeInteractive(newImg, canvasElement);
             container.style.left = `${event.clientX - rect.left - 50}px`;
