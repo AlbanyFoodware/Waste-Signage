@@ -312,11 +312,19 @@ main {
         "template template"
         "images preview"
         "download download";
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: 30px;
     padding: 20px;
     max-width: 1400px;
     margin: 0 auto;
+}
+
+#template-selection { grid-area: template; }
+#image-selection { grid-area: images; }
+#design-canvas { grid-area: preview; }
+#download { 
+    grid-area: download;
+    text-align: center;
 }
 
 section {
@@ -334,8 +342,8 @@ section:hover {
 
 /* Enlarged sign preview area */
 #design-canvas {
-    grid-area: preview;
-    min-height: unset;
+    grid-column: span 2;
+    min-height: 600px;
     display: flex;
     flex-direction: column;
     align-items: center;
