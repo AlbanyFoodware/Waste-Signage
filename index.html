@@ -5,49 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Custom Waste Flow Signage</title>
   <link rel="stylesheet" href="styles.css">
-  <style>
-    .container {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
-        margin: 20px auto;
-        max-width: 1200px;
-    }
-
-    .left-panel {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-    }
-
-    .right-panel {
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    #image-selection, #template-selection {
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    #canvas-area {
-        border: 1px solid #000;
-        width: 510px;
-        height: 680px;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .content-area {
-        display: flex;
-        gap: 30px;
-        justify-content: center;
-    }
-  </style>
 </head>
 <body>
   <header>
@@ -95,8 +52,6 @@
     window.jsPDF = window.jspdf.jsPDF;
   </script>
   <script src="app.js"></script>
-  <img src="Albany Green_City Seal_CMYK.png" alt="Albany City Seal" class="corner-seal top-left">
-  <img src="Albany Green_City Seal_CMYK.png" alt="Albany City Seal" class="corner-seal top-right">
 </body>
 </html>
 <!-- Pre-loaded foodware images -->
@@ -104,28 +59,5 @@
   <h2>Common Foodware Items</h2>
   <div class="image-grid">
   </div>
-  <style>
-    .image-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-      gap: 15px;
-      padding: 20px;
-    }
-    
-    .preset-item {
-      width: 100%;
-      max-width: 100px;
-      height: auto;
-      cursor: move;
-      border: 2px solid transparent;
-      border-radius: 8px;
-      transition: transform 0.3s ease, border-color 0.3s;
-    }
-    
-    .preset-item:hover {
-      transform: scale(1.1);
-      border-color: #ffbb00;
-    }
-  </style>
 </section>
 
