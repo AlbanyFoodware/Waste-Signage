@@ -678,3 +678,20 @@ main {
 .canvas-image-container.selected {
     outline: 2px solid rgba(0, 123, 255, 0.8);
 }
+
+/* Add this new style for the logo containers */
+.corner-logo {
+    position: absolute;
+    top: 30px;
+    width: 300px; /* Adjust size as needed */
+    height: auto;
+    z-index: 100;
+}
+
+.corner-logo-left {
+    left: 35px;
+}
+
+.corner-logo-right {
+    right: 35px;
+}
