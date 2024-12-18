@@ -310,7 +310,7 @@ function updateCanvasForTemplate(templateType) {
 
 // Generate preset images
 const presetImages = [
-  ...Array.from({length: 29}, (_, i) => {
+  ...Array.from({length: 33}, (_, i) => {
     const imagePath = `Foodware Images/image${i + 1}.jpg`;
     console.log('Attempting to load: ${imagePath}');
     return imagePath;  
