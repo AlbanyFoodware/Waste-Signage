@@ -277,7 +277,7 @@ function updateCanvasForTemplate(templateType) {
     canvas.style.border = '24px solid green';
     title.textContent = "Compost/ Compostar/ 可堆肥垃圾";
     subtitle.textContent = "Please compost these materials by putting them in the green bin!";
-    bottomText.textContent = "Yes = Food scraps, food soiled paper and plant waste. No = Plastic, glass, metal, pet waste or diapers.";
+    bottomText.innerHTML = "Yes = Food scraps, food soiled paper and plant waste.<br>No = Plastic, glass, metal, pet waste or diapers.";
     title.style.color = 'green';
     subtitle.style.color = 'green';
     bottomText.style.color = 'green';
@@ -285,7 +285,7 @@ function updateCanvasForTemplate(templateType) {
     canvas.style.border = '24px solid blue';
     title.textContent = "Recycling/ Reciclaje/ 可回收物";
     subtitle.textContent = "Please recycle these materials by putting them in the blue bin!";
-    bottomText.textContent = "Yes = Paper, cardboard, glass, plastic, metal, and aluminum cans. No = Styrofoam, plastic bags, plastic wrap, Styrofoam containers, plastic utensils, and plastic film.";
+    bottomText.innerHTML = "Yes = Paper, cardboard, glass, plastic, metal, and aluminum cans.<br>No = Styrofoam, plastic bags, plastic wrap, Styrofoam containers, plastic utensils, and plastic film.";
     title.style.color = 'blue';
     subtitle.style.color = 'blue';
     bottomText.style.color = 'blue';
@@ -293,7 +293,7 @@ function updateCanvasForTemplate(templateType) {
     canvas.style.border = '24px solid black';
     title.textContent = "Landfill/ Basurero/ 垃圾";
     subtitle.textContent = "Please put these materials in the black or grey landfill bin!";
-    bottomText.textContent = "Yes = plastic bags and wrap, plastic straws and utensils, plastic to-go containers, plastic lined paper, pet waste and diapers. No = food waste, electronics, batteries, recyclables.";
+    bottomText.innerHTML = "Yes = plastic bags and wrap, plastic straws and utensils, plastic to-go containers, plastic lined paper, pet waste and diapers.<br>No = food waste, electronics, batteries, recyclables.";
     title.style.color = 'black';
     subtitle.style.color = 'black';
     bottomText.style.color = 'black';
