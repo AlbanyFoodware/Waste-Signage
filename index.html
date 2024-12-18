@@ -5,12 +5,33 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Custom Waste Flow Signage</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
 <body>
   <header>
     <h1>Waste Flow Signage Creator</h1>
     <p>Create your custom signs for recycling, compost, and landfill!</p>
+    <p2>If you aren't sure, or have questions, feel free to contact us at <a href="foodware@albany.org">foodware@albany.org</a></p2>
+   
   </header>
+  <div class="logo-container">
+    <img src="Albany Green_City Seal_CMYK.png" alt="Logo" class="center-logo">
+  </div>
+
+  <div id="previewCanvas"></div>
+
+
+<script>
+  // Initialize with one drop zone
+  updateDropZones(1);
+
+  // Button to add more drop zones
+  document.getElementById("addImageButton").addEventListener("click", () => {
+    const currentCount = canvas.children.length;
+    updateDropZones(currentCount + 1);
+  });
+</script>
 
   <main>
     <section id="template-selection">
@@ -32,11 +53,13 @@
 
     <section id="design-canvas">
         <h2>Your Sign Preview</h2>
-        <div id="canvas-area"></div>
+        <div id="canvas-area">
+            <!-- The title, subtitle, and bottom text will be added here dynamically -->
+        </div>
     </section>
 
     <section id="download">
-      <button>Download Sign as PDF</button>
+      <button id="Download Sign as PDF">Download Sign as PDF</button>
     </section>
   </main>
 
@@ -57,7 +80,4 @@
   <div class="image-grid">
   </div>
 </section>
-
-<img src="Albany Green_City Seal_CMYK.png" alt="Albany Green City Seal Logo" class="corner-logo corner-logo-left">
-<img src="Albany Green_City Seal_CMYK.png" alt="Albany Green City Seal Logo" class="corner-logo corner-logo-right">
 

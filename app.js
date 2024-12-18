@@ -1,431 +1,492 @@
-// Selecting a template
-document.querySelectorAll('#template-selection button').forEach(button => {
-    button.addEventListener('click', () => {
-      const canvas = document.getElementById('canvas-area');
-      console.log(`Template button clicked: ${button.id}`);
-  
-      // Remove any existing template classes
-      canvas.classList.remove('compost', 'recycling', 'landfill');
-      console.log('Removed existing template classes from canvas.');
-  
-      // Clear the current content on the canvas
-      canvas.innerHTML = '';
-      console.log('Cleared canvas content.');
-  
-      // Add the class for the selected template
-      if (button.id === 'compost-template') {
-        canvas.classList.add('compost');
-        console.log('Added compost template class.');
-        updateCanvasForTemplate('compost');
-      } else if (button.id === 'recycling-template') {
-        canvas.classList.add('recycling');
-        console.log('Added recycling template class.');
-        updateCanvasForTemplate('recycling');
-      } else if (button.id === 'landfill-template') {
-        canvas.classList.add('landfill');
-        console.log('Added landfill template class.');
-        updateCanvasForTemplate('landfill');
-      }
-    });
-  });
-  
-  // Function to update canvas based on template
-  function updateCanvasForTemplate(templateType) {
-    const canvas = document.getElementById('canvas-area');
-    console.log(`Updating canvas for template: ${templateType}`);
-  
-    // Define the content for each template
-    const title = document.createElement('p');
-    title.style.fontFamily = 'Times New Roman, serif';  // Set the font to Times New Roman
-    title.style.fontSize = '24px';  // Set a large font size for the title
-    title.style.position = 'absolute';
-    title.style.top = '20px';  // Position at the top of the canvas
-    title.style.left = '50%';
-    title.style.transform = 'translateX(-50%)';  // Center horizontally
-  
-    // Set canvas size to match a 3:1 ratio
-    canvas.style.width = '510px';  // Width of the canvas (3:1 ratio)
-    canvas.style.height = '680px'; // Height of the canvas (3:1 ratio)
-    console.log('Canvas size updated to 510px by 680px (3:1 ratio).');
-  
-    if (templateType === 'compost') {
-      // Add a green border for compost
-      canvas.style.border = '10px solid green';  // Thick green border
-      title.textContent = "Compost";
-      title.style.color = 'green';  // Title color matches the border color
-      console.log('Compost template applied: Green border and title color.');
-      canvas.appendChild(title);
-    } else if (templateType === 'recycling') {
-      // Add a blue border for recycling
-      canvas.style.border = '10px solid blue';  // Thick blue border
-      title.textContent = "Recycling";
-      title.style.color = 'blue';  // Title color matches the border color
-      console.log('Recycling template applied: Blue border and title color.');
-      canvas.appendChild(title);
-    } else if (templateType === 'landfill') {
-      // Add a black border for landfill
-      canvas.style.border = '10px solid black';  // Thick black border
-      title.textContent = "Landfill";
-      title.style.color = 'black';  // Title color matches the border color
-      console.log('Landfill template applied: Black border and title color.');
-      canvas.appendChild(title);
-    }
-  }
-  
-  // Get references to canvas and upload input
+function createDropZones(numZones, preserveExisting = true) {
   const canvas = document.getElementById('canvas-area');
-  console.log('Canvas element retrieved:', canvas);
+  const existingTitle = canvas.querySelector('p');
+  const existingSubtitle = canvas.querySelectorAll('p')[1];
+  const existingBottomText = canvas.querySelectorAll('p')[2];
   
-  // Make items draggable (foodware images)
-  document.querySelectorAll('.preset-item').forEach(img => {
-    img.setAttribute('draggable', true);
-    console.log(`Making image draggable: ${img.src}`);
+  // Store existing images and their positions
+  const existingImages = Array.from(document.querySelectorAll('.drop-zone')).map((zone, index) => {
+    const img = zone.querySelector('img');
+    return img ? { src: img.src, index } : null;
+  }).filter(item => item !== null);
   
-    img.addEventListener('dragstart', event => {
-      event.dataTransfer.setData('text/plain', event.target.src);
-      event.dataTransfer.effectAllowed = 'move';
-      console.log('Drag started for image:', event.target.src);
-    });
-  });
+  canvas.innerHTML = '';
+  if (existingTitle) canvas.appendChild(existingTitle);
+  if (existingSubtitle) canvas.appendChild(existingSubtitle);
+  if (existingBottomText) canvas.appendChild(existingBottomText);
   
-  // Single makeInteractive function definition
-  function makeInteractive(img) {
-    // Variables for interactions
-    let isDragging = false;
-    let isResizing = false;
-    let isRotating = false;
-    let rotation = 0;
-    let startX, startY;
-    let originalWidth, originalHeight;
 
-    // Create container and controls wrapper
-    const container = document.createElement('div');
-    container.className = 'canvas-image-container';
-    container.style.position = 'absolute';
-    container.style.transformOrigin = 'center center';
-    
-    // Create a wrapper for the image and controls that will rotate together
-    const rotationWrapper = document.createElement('div');
-    rotationWrapper.style.position = 'relative';
-    rotationWrapper.style.width = 'fit-content';
-    rotationWrapper.style.transformOrigin = 'center center';
-    
-    const controlsWrapper = document.createElement('div');
-    controlsWrapper.className = 'controls-wrapper hidden'; // Start hidden
-    controlsWrapper.style.position = 'absolute';
-    controlsWrapper.style.top = '-30px';
-    controlsWrapper.style.left = '0';
-    controlsWrapper.style.width = '100%';
-    controlsWrapper.style.display = 'none'; // Start with display none
-    controlsWrapper.style.justifyContent = 'center';
-    controlsWrapper.style.gap = '5px';
-
-    // Create delete button
-    const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'delete-btn';
-    deleteBtn.innerHTML = '×';
-    deleteBtn.title = 'Delete';
-    deleteBtn.addEventListener('click', () => {
-        container.remove();
-    });
-
-    // Create rotate button with free rotation
-    const rotateBtn = document.createElement('button');
-    rotateBtn.className = 'rotate-btn';
-    rotateBtn.innerHTML = '↻';
-    rotateBtn.title = 'Rotate';
-
-    let startAngle = 0;
-    let currentRotation = 0;
-
-    rotateBtn.addEventListener('mousedown', (e) => {
-        e.stopPropagation();
-        isRotating = true;
-        
-        const rect = img.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-        
-        startAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
-
-        function onMouseMove(e) {
-            if (!isRotating) return;
-            
-            const newAngle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
-            const angleDiff = newAngle - startAngle;
-            const degrees = angleDiff * (180 / Math.PI);
-            
-            currentRotation += degrees;
-            rotationWrapper.style.transform = `rotate(${currentRotation}deg)`;
-            
-            startAngle = newAngle;
-        }
-
-        function onMouseUp() {
-            isRotating = false;
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
-        }
-
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
-    });
-
-    // Create resize handle
-    const resizeHandle = document.createElement('div');
-    resizeHandle.className = 'resize-handle';
-    resizeHandle.innerHTML = '↘️';
-    resizeHandle.style.position = 'absolute';
-    resizeHandle.style.bottom = '-10px';
-    resizeHandle.style.right = '-10px';
-    resizeHandle.style.cursor = 'se-resize';
-    resizeHandle.style.display = 'none'; // Start hidden
-
-    // Add resize functionality
-    resizeHandle.addEventListener('mousedown', (e) => {
-        e.stopPropagation();
-        isResizing = true;
-        originalWidth = img.offsetWidth;
-        originalHeight = img.offsetHeight;
-        startX = e.clientX;
-        startY = e.clientY;
-        
-        function onMouseMove(e) {
-            if (!isResizing) return;
-            const deltaX = e.clientX - startX;
-            const newWidth = originalWidth + deltaX;
-            
-            if (newWidth > 50) {
-                img.style.width = `${newWidth}px`;
-                img.style.height = 'auto';
-            }
-        }
-        
-        function onMouseUp() {
-            isResizing = false;
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
-        }
-        
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
-    });
-
-    // Add drag functionality
-    img.addEventListener('mousedown', (e) => {
-        if (isRotating || isResizing) return;
-        e.preventDefault();
-        isDragging = true;
-        startX = e.clientX - container.offsetLeft;
-        startY = e.clientY - container.offsetTop;
-        container.style.zIndex = '1000';
-
-        function onMouseMove(e) {
-            if (!isDragging) return;
-            container.style.left = `${e.clientX - startX}px`;
-            container.style.top = `${e.clientY - startY}px`;
-        }
-
-        function onMouseUp() {
-            isDragging = false;
-            container.style.zIndex = '1';
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
-        }
-
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
-    });
-
-    // Selection functionality
-    img.addEventListener('click', (e) => {
-        e.stopPropagation();
-        // Hide all other control wrappers and resize handles
-        document.querySelectorAll('.controls-wrapper, .resize-handle').forEach(el => {
-            el.style.display = 'none';
-        });
-        // Show this image's controls and resize handle
-        controlsWrapper.style.display = 'flex';
-        resizeHandle.style.display = 'block';
-    });
-
-    // Add elements to container
-    controlsWrapper.appendChild(deleteBtn);
-    controlsWrapper.appendChild(rotateBtn);
-    
-    rotationWrapper.appendChild(img);
-    rotationWrapper.appendChild(controlsWrapper);
-    rotationWrapper.appendChild(resizeHandle);
-    container.appendChild(rotationWrapper);
-
-    // Click outside to hide controls
-    document.addEventListener('click', (e) => {
-        if (!container.contains(e.target)) {
-            controlsWrapper.style.display = 'none';
-            resizeHandle.style.display = 'none';
-        }
-    });
-
-    return container;
+  const dropZonesContainer = document.createElement('div');
+  dropZonesContainer.className = 'drop-zones-container';
+  dropZonesContainer.style.display = 'grid';
+  dropZonesContainer.style.width = '100%';
+  dropZonesContainer.style.height = '70%';
+  dropZonesContainer.style.padding = '20px';
+  dropZonesContainer.style.boxSizing = 'border-box';
+  dropZonesContainer.style.marginTop = '40px';
+  dropZonesContainer.style.position = 'relative';
+  dropZonesContainer.style.top = '-20px';
+  
+  // Configure grid based on number of zones
+  if (numZones <= 4) {
+    dropZonesContainer.style.gridTemplateColumns = 'repeat(2, 1fr)';
+    dropZonesContainer.style.gridTemplateRows = 'repeat(2, 1fr)';
+  } else if (numZones <= 6) {
+    dropZonesContainer.style.gridTemplateColumns = 'repeat(2, 1fr)';
+    dropZonesContainer.style.gridTemplateRows = 'repeat(3, 1fr)';
+  } else {
+    dropZonesContainer.style.gridTemplateColumns = 'repeat(3, 1fr)';
+    dropZonesContainer.style.gridTemplateRows = 'repeat(3, 1fr)';
   }
-
-  // Handle drop events on the canvas
-  canvas.addEventListener('dragover', event => {
-    event.preventDefault();
-    console.log('Dragover event detected on canvas.');
-  });
   
-  // Handle drop events on the canvas for preselected foodware images
-  canvas.addEventListener('drop', event => {
-    event.preventDefault();
-    console.log("Dropped an image.");
+  dropZonesContainer.style.gap = '10px';
   
-    const imageSrc = event.dataTransfer.getData('text/plain');
-    console.log('Image source retrieved from data transfer:', imageSrc);
-  
-    if (imageSrc) {
-      const img = new Image();
-      img.src = imageSrc;
-      img.style.width = '100px';
-      img.style.cursor = 'move';
-      img.classList.add('canvas-item');
+  for (let i = 0; i < numZones; i++) {
+    const dropZone = document.createElement('div');
+    dropZone.className = 'drop-zone';
+    dropZone.style.border = '2px dashed #ccc';
+    dropZone.style.display = 'flex';
+    dropZone.style.alignItems = 'center';
+    dropZone.style.justifyContent = 'center';
+    dropZone.style.minHeight = '100px';
+    dropZone.style.position = 'relative';
+    
+    // Restore existing image if there was one in this position
+    const existingImage = preserveExisting ? existingImages.find(img => img.index === i) : null;
+    if (existingImage) {
+      addImageToDropZone(dropZone, existingImage.src);
+    } else {
+      dropZone.innerHTML = '<p>Drop image here</p>';
+    }
+    
+    // Drop zone event listeners
+    dropZone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+      dropZone.style.backgroundColor = 'rgba(0,0,0,0.1)';
+    });
+    
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.style.backgroundColor = 'transparent';
+    });
+    
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.style.backgroundColor = 'transparent';
       
-      img.onload = () => {
-        const container = makeInteractive(img, canvas);
+      const imageSrc = e.dataTransfer.getData('text/plain');
+      if (imageSrc) {
+        addImageToDropZone(dropZone, imageSrc);
         
-        const rect = canvas.getBoundingClientRect();
-        container.style.position = 'absolute';
-        container.style.left = `${event.clientX - rect.left - 50}px`;
-        container.style.top = `${event.clientY - rect.top - 50}px`;
-        
-        canvas.appendChild(container);
-        console.log('New image added to canvas successfully');
+        // Check if we need to add a new zone
+        const container = dropZone.parentElement;
+        const allZones = container.querySelectorAll('.drop-zone');
+        const filledZones = container.querySelectorAll('.drop-zone img');
+        if (filledZones.length === allZones.length && allZones.length < 9) {
+          createDropZones(allZones.length + 1, true);
+        }
       }
+    });
+    
+    dropZonesContainer.appendChild(dropZone);
+  }
+  
+  canvas.appendChild(dropZonesContainer);
+}
+
+// Add this event listener to handle zone creation during drag
+const canvasArea = document.getElementById('canvas-area');
+canvasArea.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  if (e.dataTransfer.types.includes('text/plain')) {
+    const allZones = document.querySelectorAll('.drop-zone');
+    const filledZones = document.querySelectorAll('.drop-zone img');
+    if (filledZones.length === allZones.length && allZones.length < 9) {
+      const newNumZones = allZones.length + 1;
+      createDropZones(newNumZones, true);
+    }
+  }
+});
+
+// Function to adjust canvas size based on screen size
+function adjustCanvasSize() {
+  const screenWidth = window.innerWidth;
+  const screenHeight = window.innerHeight;
+  const canvas = document.getElementById('canvas-area');
+  
+  // Calculate dimensions based on viewport size
+  const maxWidth = Math.min(screenWidth * 0.45, 510); // Slightly increased from 0.4
+  const maxHeight = screenHeight * 0.8; // Use 80% of viewport height
+  
+  canvas.style.width = `${maxWidth}px`;
+  canvas.style.height = `${maxHeight}px`;
+  
+  // Adjust font sizes based on canvas size
+  const scaleFactor = maxWidth / 510; // Use original width as base
+  
+  // Adjust title and subtitle sizes
+  const title = canvas.querySelector('p');
+  const subtitle = canvas.querySelectorAll('p')[1];
+  
+  if (title) {
+    title.style.fontSize = `${24 * scaleFactor}px`;
+    title.style.top = `${20 * scaleFactor}px`;
+  }
+  
+  if (subtitle) {
+    subtitle.style.fontSize = `${16 * scaleFactor}px`;
+    subtitle.style.top = `${50 * scaleFactor}px`;
+  }
+  
+  // Adjust drop zones container
+  const dropZonesContainer = canvas.querySelector('.drop-zones-container');
+  if (dropZonesContainer) {
+    dropZonesContainer.style.padding = `${20 * scaleFactor}px`;
+    dropZonesContainer.style.marginTop = `${80 * scaleFactor}px`;
+    dropZonesContainer.style.gap = `${10 * scaleFactor}px`;
+  }
+  
+  // Adjust delete buttons
+  document.querySelectorAll('.delete-button').forEach(btn => {
+    const buttonSize = 24 * scaleFactor;
+    btn.style.width = `${buttonSize}px`;
+    btn.style.height = `${buttonSize}px`;
+    btn.style.top = `${-12 * scaleFactor}px`;
+    btn.style.right = `${-12 * scaleFactor}px`;
+    
+    // Adjust X size
+    const deleteX = btn.querySelector('span');
+    if (deleteX) {
+      deleteX.style.fontSize = `${20 * scaleFactor}px`;
     }
   });
+}
+
+// Add CSS to the preset images gallery
+const gallery = document.querySelector('.preset-images');
+if (gallery) {
+  gallery.style.display = 'grid';
+  gallery.style.gridTemplateColumns = 'repeat(auto-fill, minmax(100px, 1fr))';
+  gallery.style.gap = '10px';
+  gallery.style.padding = '20px';
+  gallery.style.maxHeight = '80vh';
+  gallery.style.overflowY = 'auto';
+}
+
+// Make preset images responsive
+document.querySelectorAll('.preset-item').forEach(img => {
+  img.style.width = '100%';
+  img.style.height = 'auto';
+  img.style.objectFit = 'contain';
+  img.style.maxWidth = '100%';
+});
+
+// Add resize listener if not already present
+window.removeEventListener('resize', adjustCanvasSize); // Remove any existing listeners
+window.addEventListener('resize', () => {
+  adjustCanvasSize();
+  // Debounce the resize event
+  clearTimeout(window.resizeTimeout);
+  window.resizeTimeout = setTimeout(() => {
+    adjustCanvasSize();
+  }, 250);
+});
+
+// Call adjustCanvasSize initially
+adjustCanvasSize();
+
+// Template selection
+document.querySelectorAll('#template-selection button').forEach(button => {
+  button.addEventListener('click', () => {
+    const canvas = document.getElementById('canvas-area');
+    canvas.classList.remove('compost', 'recycling', 'landfill');
+    canvas.innerHTML = '';
+    
+    if (button.id === 'compost-template') {
+      canvas.classList.add('compost');
+      updateCanvasForTemplate('compost');
+    } else if (button.id === 'recycling-template') {
+      canvas.classList.add('recycling');
+      updateCanvasForTemplate('recycling');
+    } else if (button.id === 'landfill-template') {
+      canvas.classList.add('landfill');
+      updateCanvasForTemplate('landfill');
+    }
+    
+    createDropZones(4, false);
+    adjustCanvasSize();
+  });
+});
+
+// Function to update canvas based on template
+function updateCanvasForTemplate(templateType) {
+  const canvas = document.getElementById('canvas-area');
   
-  // Get references to the button and input for uploading images
+  const title = document.createElement('p');
+  title.style.fontFamily = 'Times New Roman, serif';
+  title.style.fontSize = '24px';
+  title.style.position = 'absolute';
+  title.style.top = '20px';
+  title.style.left = '50%';
+  title.style.transform = 'translateX(-50%)';
+  title.style.margin = '0';
+
+  const subtitle = document.createElement('p');
+  subtitle.style.fontFamily = 'Times New Roman, serif';
+  subtitle.style.fontSize = '16px';
+  subtitle.style.position = 'absolute';
+  subtitle.style.top = '50px';
+  subtitle.style.left = '50%';
+  subtitle.style.transform = 'translateX(-50%)';
+  subtitle.style.whiteSpace = 'nowrap';
+  subtitle.style.margin = '0';
+
+  const bottomText = document.createElement('p');
+  bottomText.style.fontFamily = 'Times New Roman, serif';
+  bottomText.style.fontSize = '16px';
+  bottomText.style.position = 'absolute';
+  bottomText.style.bottom = '20px';
+  bottomText.style.left = '10px';
+  bottomText.style.right = '10px';
+  bottomText.style.transform = 'none';
+  bottomText.style.textAlign = 'center';
+  bottomText.style.whiteSpace = 'normal';
+  bottomText.style.maxHeight = '60px';
+  bottomText.style.lineHeight = '1.3';
+  bottomText.style.Width = '99%';
+  bottomText.style.width = 'calc(100% - 20px)';
+  bottomText.style.overflow = 'hidden';
+  bottomText.style.display = '-webkit-box';
+  bottomText.style.WebkitLineClamp = '3';
+  bottomText.style.WebkitBoxOrient = 'vertical';
+  bottomText.style.margin = '0';
+  bottomText.style.zIndex = '1';
+  bottomText.style.padding = '0 5px';
+  bottomText.style.boxSizing = 'border-box';
+
+  if (templateType === 'compost') {
+    canvas.style.border = '10px solid green';
+    title.textContent = "Compost";
+    subtitle.textContent = "Please compost these materials by putting them in the green bin!";
+    bottomText.textContent = "Yes = Food scraps, food soiled paper and plant waste. No = Plastic, glass, metal, pet waste or diapers.";
+    title.style.color = 'green';
+    subtitle.style.color = 'green';
+    bottomText.style.color = 'green';
+  } else if (templateType === 'recycling') {
+    canvas.style.border = '10px solid blue';
+    title.textContent = "Recycling";
+    subtitle.textContent = "Please recycle these materials by putting them in the blue bin!";
+    bottomText.textContent = "Yes = Paper, cardboard, glass, plastic, metal, and aluminum cans. No = Styrofoam, plastic bags, plastic wrap, Styrofoam containers, plastic utensils, and plastic film.";
+    title.style.color = 'blue';
+    subtitle.style.color = 'blue';
+    bottomText.style.color = 'blue';
+  } else if (templateType === 'landfill') {
+    canvas.style.border = '10px solid black';
+    title.textContent = "Landfill";
+    subtitle.textContent = "Please put these materials in the black or grey landfill bin!";
+    bottomText.textContent = "Yes = plastic bags and wrap, plastic straws and utensils, plastic to-go containers, plastic lined paper, pet waste and diapers. No = food waste, electronics, batteries, recyclables.";
+    title.style.color = 'black';
+    subtitle.style.color = 'black';
+    bottomText.style.color = 'black';
+  }
+
+  // Clear any existing content
+  canvas.innerHTML = '';
+  
+  // Add all elements to canvas
+  canvas.appendChild(title);
+  canvas.appendChild(subtitle);
+  canvas.appendChild(bottomText);
+}
+
+// Generate preset images
+const presetImages = [
+  ...Array.from({length: 26}, (_, i) => `Foodware Images/image${i + 1}.jpg`),
+];
+
+function generatePresetGallery() {
+  const gallery = document.querySelector('.preset-images');
+  
+  presetImages.forEach((imagePath, index) => {
+    const img = document.createElement('img');
+    img.src = imagePath;
+    img.alt = `Foodware Item ${index + 1}`;
+    img.className = 'preset-item';
+    img.style.cursor = 'pointer';
+    
+    img.addEventListener('click', () => {
+      const dropZones = document.querySelectorAll('.drop-zone');
+      const filledZones = document.querySelectorAll('.drop-zone img');
+      
+      // If all current zones are filled
+      if (filledZones.length === dropZones.length) {
+        // Create exactly one more zone for the new image
+        createDropZones(filledZones.length + 1, true);
+      }
+      
+      // Get updated list of zones after potential creation
+      const currentDropZones = document.querySelectorAll('.drop-zone');
+      const emptyZone = Array.from(currentDropZones).find(zone => !zone.querySelector('img'));
+      
+      if (emptyZone) {
+        addImageToDropZone(emptyZone, img.src);
+      }
+    });
+    
+    gallery.appendChild(img);
+  });
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  generatePresetGallery();
+  adjustCanvasSize();
+
+  // Add download button functionality
+  const downloadButton = document.getElementById('Download Sign as PDF');
+  if (downloadButton) {
+    downloadButton.addEventListener('click', () => {
+      const canvas = document.getElementById('canvas-area');
+      
+      html2canvas(canvas, {
+        backgroundColor: 'white',
+        scale: 2,
+        useCORS: true,
+      }).then(canvas => {
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'px',
+          format: [510, 680]  // Match your canvas dimensions
+        });
+        
+        pdf.addImage(imgData, 'PNG', 0, 0, 510, 680);
+        pdf.save('waste-sorting-sign.pdf');
+      });
+    });
+  }
+
   const uploadButton = document.getElementById('upload-btn');
   const uploadInput = document.getElementById('upload-input');
   
-  uploadButton.addEventListener('click', () => {
-    uploadInput.click();
-    console.log('Upload button clicked, triggering file input.');
-  });
-  
-  uploadInput.addEventListener('change', (event) => {
-    const file = event.target.files[0];
-    const canvasElement = document.getElementById('canvas-area');
-    console.log('File selected:', file);
+  if (uploadButton) {
+    uploadButton.addEventListener('click', () => {
+      uploadInput.click();
+    });
     
-    if (file && canvasElement) {
-      console.log('Creating new image from file');
-      const img = document.createElement('img');
-      img.src = URL.createObjectURL(file);
-      img.style.width = '100px';
-      img.style.cursor = 'move';
-      img.classList.add('canvas-item');
-
-      img.onload = () => {
-        console.log('Image loaded successfully');
-        try {
-          const container = makeInteractive(img, canvasElement);
-          canvasElement.appendChild(container);
-          console.log('Image added to canvas successfully');
-        } catch (error) {
-          console.error('Error adding image to canvas:', error);
-        }
-      };
-
-      img.onerror = () => {
-        console.error('Error loading image');
-        URL.revokeObjectURL(img.src);
-      };
-    } else {
-      console.error('No file selected or canvas not found');
-    }
-  });
-  
-  const presetImages = Array.from({length: 22}, (_, i) => `Foodware Images/image${i + 1}.jpg`);
-
-  function generatePresetGallery() {
-    const gallery = document.querySelector('.preset-images');
-    
-    presetImages.forEach((imagePath, index) => {
-        const img = document.createElement('img');
-        img.src = imagePath;
-        img.alt = `Foodware Item ${index + 1}`;
-        img.className = 'preset-item';
-        img.setAttribute('draggable', true);
-        
-        gallery.appendChild(img);
+    uploadInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const imageSrc = event.target.result;
+          // Find an empty drop zone
+          const dropZones = document.querySelectorAll('.drop-zone');
+          const emptyZone = Array.from(dropZones).find(zone => !zone.querySelector('img'));
+          
+          if (emptyZone) {
+            addImageToDropZone(emptyZone, imageSrc);
+          } else {
+            // Create a new zone if needed
+            createDropZones(dropZones.length + 1, true);
+            const newDropZones = document.querySelectorAll('.drop-zone');
+            const newEmptyZone = Array.from(newDropZones).find(zone => !zone.querySelector('img'));
+            if (newEmptyZone) {
+              addImageToDropZone(newEmptyZone, imageSrc);
+            }
+          }
+        };
+        reader.readAsDataURL(file);
+      }
     });
   }
+});
 
-  document.addEventListener('DOMContentLoaded', () => {
-    generatePresetGallery();
-    
-    const downloadButton = document.querySelector('#download button');
-    if (downloadButton) {
-        downloadButton.addEventListener('click', async () => {
-            try {
-                downloadButton.disabled = true;
-                downloadButton.textContent = 'Generating PDF...';
-                
-                const canvas = document.getElementById('canvas-area');
-                
-                // Hide all control wrappers and resize handles before capturing
-                const controls = canvas.querySelectorAll('.controls-wrapper, .resize-handle');
-                controls.forEach(control => {
-                    control.style.display = 'none';
-                });
-                
-                const canvasImage = await html2canvas(canvas, {
-                    scale: 2,
-                    useCORS: true,
-                    allowTaint: true,
-                    backgroundColor: '#ffffff'
-                });
+function addImageToDropZone(dropZone, imageSrc) {
+  const imgContainer = document.createElement('div');
+  imgContainer.style.position = 'relative';
+  imgContainer.style.width = '100%';
+  imgContainer.style.height = '100%';
+  imgContainer.style.display = 'flex';
+  imgContainer.style.alignItems = 'center';
+  imgContainer.style.justifyContent = 'center';
 
-                const doc = new jsPDF({
-                    orientation: 'portrait',
-                    unit: 'px',
-                    format: [510, 680]
-                });
+  const img = new Image();
+  img.src = imageSrc;
+  img.style.maxWidth = '100%';
+  img.style.maxHeight = '100%';
+  img.style.objectFit = 'contain';
+  
+  const deleteBtn = document.createElement('button');
+  deleteBtn.className = 'delete-button';
+  deleteBtn.style.position = 'absolute';
+  deleteBtn.style.top = '-12px';
+  deleteBtn.style.right = '-12px';
+  deleteBtn.style.backgroundColor = '#ffffff';
+  deleteBtn.style.color = 'red';
+  deleteBtn.style.border = '2px solid red';
+  deleteBtn.style.width = '24px';
+  deleteBtn.style.height = '24px';
+  deleteBtn.style.cursor = 'pointer';
+  deleteBtn.style.display = 'none';
+  deleteBtn.style.alignItems = 'center';
+  deleteBtn.style.justifyContent = 'center';
+  deleteBtn.style.padding = '1px';
+  deleteBtn.style.background = 'white';
+  deleteBtn.style.outline = 'none';
 
-                const imgData = canvasImage.toDataURL('image/png');
-                doc.addImage(imgData, 'PNG', 0, 0, 510, 680);
-                
-                doc.save('waste-flow-sign.pdf');
-                
-            } catch (error) {
-                console.error('Error generating PDF:', error);
-                alert('Error generating PDF. Please try again.');
-            } finally {
-                downloadButton.disabled = false;
-                downloadButton.textContent = 'Download Sign as PDF';
-            }
-        });
-    }
+  
+  const deleteX = document.createElement('span');
+  deleteX.textContent = 'x';
+  deleteX.style.color = 'red';
+  deleteX.style.fontSize = '20px';
+  deleteX.style.lineHeight = '20px';
+  deleteX.style.fontWeight = 'bold';
+  deleteX.style.position = 'relative';
+  deleteX.style.display = 'flex';
+  deleteX.style.alignItems = 'center';
+  deleteX.style.justifyContent = 'center';
+
+  deleteBtn.appendChild(deleteX);
+
+  imgContainer.addEventListener('mouseenter', () => {
+    deleteBtn.style.display = 'flex';
   });
-
-  document.querySelectorAll('.preset-item').forEach(img => {
-    img.addEventListener('mousedown', event => {
-        event.preventDefault();
-        const canvasElement = document.getElementById('canvas-area');
-        const rect = canvasElement.getBoundingClientRect();
-        
-        const newImg = new Image();
-        newImg.src = img.src;
-        newImg.style.width = '100px';
-        newImg.style.cursor = 'move';
-        newImg.classList.add('canvas-item');
-        
-        newImg.onload = () => {
-            const container = makeInteractive(newImg, canvasElement);
-            container.style.left = `${event.clientX - rect.left - 50}px`;
-            container.style.top = `${event.clientY - rect.top - 50}px`;
-            canvasElement.appendChild(container);
-        };
+  
+  imgContainer.addEventListener('mouseleave', () => {
+    deleteBtn.style.display = 'none';
+  });
+  
+  deleteBtn.addEventListener('click', () => {
+    const container = dropZone.parentElement;
+    const allDropZones = container.querySelectorAll('.drop-zone');
+    const deletedIndex = Array.from(allDropZones).indexOf(dropZone);
+    
+    // Only collect actual images, no duplicates
+    const existingImages = [];
+    Array.from(allDropZones).forEach((zone, index) => {
+      const img = zone.querySelector('img');
+      if (img && zone !== dropZone) {
+        const newIndex = index > deletedIndex ? index - 1 : index;
+        existingImages.push({ src: img.src, index: newIndex });
+      }
+    });
+    
+    // Create zones with empty placeholders
+    const newNumZones = Math.max(4, existingImages.length);
+    createDropZones(newNumZones, false);  // Changed to false to prevent duplication
+    
+    // Only restore actual existing images
+    existingImages.forEach(({src, index}) => {
+      const zones = document.querySelectorAll('.drop-zone');
+      if (zones[index]) {
+        addImageToDropZone(zones[index], src);
+      }
     });
   });
+  
+  imgContainer.appendChild(img);
+  imgContainer.appendChild(deleteBtn);
+  dropZone.innerHTML = '';
+  dropZone.appendChild(imgContainer);
+}
