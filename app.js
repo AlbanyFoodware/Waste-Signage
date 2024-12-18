@@ -223,13 +223,20 @@ function updateCanvasForTemplate(templateType) {
   const canvas = document.getElementById('canvas-area');
   
   const title = document.createElement('p');
-  title.style.fontFamily = 'Times New Roman, serif';
-  title.style.fontSize = '24px';
+  title.style.fontFamily = "'Playfair Display SC', serif";
+  title.style.fontSize = '100px';
   title.style.position = 'absolute';
   title.style.top = '20px';
   title.style.left = '50%';
   title.style.transform = 'translateX(-50%)';
   title.style.margin = '0';
+  title.style.fontStyle = 'bold';
+  title.style.whiteSpace = 'nowrap';
+  title.style.textAlign = 'center';
+  title.style.Width = '99%';
+  title.style.display = '-webkit-box';
+  title.style.WebkitLineClamp = '3';
+  title.style.WebkitBoxOrient = 'vertical';
 
   const subtitle = document.createElement('p');
   subtitle.style.fontFamily = 'Times New Roman, serif';
@@ -240,6 +247,8 @@ function updateCanvasForTemplate(templateType) {
   subtitle.style.transform = 'translateX(-50%)';
   subtitle.style.whiteSpace = 'nowrap';
   subtitle.style.margin = '0';
+  subtitle.style.paddingTop = '10px';
+
 
   const bottomText = document.createElement('p');
   bottomText.style.fontFamily = 'Times New Roman, serif';
@@ -266,7 +275,7 @@ function updateCanvasForTemplate(templateType) {
 
   if (templateType === 'compost') {
     canvas.style.border = '10px solid green';
-    title.textContent = "Compost";
+    title.textContent = "Compost/ Compostar/ 可堆肥垃圾";
     subtitle.textContent = "Please compost these materials by putting them in the green bin!";
     bottomText.textContent = "Yes = Food scraps, food soiled paper and plant waste. No = Plastic, glass, metal, pet waste or diapers.";
     title.style.color = 'green';
@@ -274,7 +283,7 @@ function updateCanvasForTemplate(templateType) {
     bottomText.style.color = 'green';
   } else if (templateType === 'recycling') {
     canvas.style.border = '10px solid blue';
-    title.textContent = "Recycling";
+    title.textContent = "Recycling/ Reciclaje/ 可回收物";
     subtitle.textContent = "Please recycle these materials by putting them in the blue bin!";
     bottomText.textContent = "Yes = Paper, cardboard, glass, plastic, metal, and aluminum cans. No = Styrofoam, plastic bags, plastic wrap, Styrofoam containers, plastic utensils, and plastic film.";
     title.style.color = 'blue';
@@ -282,7 +291,7 @@ function updateCanvasForTemplate(templateType) {
     bottomText.style.color = 'blue';
   } else if (templateType === 'landfill') {
     canvas.style.border = '10px solid black';
-    title.textContent = "Landfill";
+    title.textContent = "Landfill/ Basurero/ 垃圾";
     subtitle.textContent = "Please put these materials in the black or grey landfill bin!";
     bottomText.textContent = "Yes = plastic bags and wrap, plastic straws and utensils, plastic to-go containers, plastic lined paper, pet waste and diapers. No = food waste, electronics, batteries, recyclables.";
     title.style.color = 'black';
@@ -301,7 +310,7 @@ function updateCanvasForTemplate(templateType) {
 
 // Generate preset images
 const presetImages = [
-  ...Array.from({length: 26}, (_, i) => {
+  ...Array.from({length: 29}, (_, i) => {
     const imagePath = `Foodware Images/image${i + 1}.jpg`;
     console.log('Attempting to load: ${imagePath}');
     return imagePath;  
