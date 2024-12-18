@@ -318,6 +318,22 @@ function generatePresetGallery() {
     img.className = 'preset-item';
     img.style.cursor = 'pointer';
     
+    // Add detailed error handling
+    img.onerror = () => {
+      console.error(`Failed to load image: ${imagePath}`);
+      console.log(`Image index: ${index + 1}`);
+      console.log(`Full path: ${img.src}`);
+      
+      // Optionally try to reload with a different extension
+      if (!img.src.includes('retry')) {
+        img.src = imagePath.replace('.jpg', '.JPG') + '?retry=1';
+      }
+    };
+    
+    img.onload = () => {
+      console.log(`Successfully loaded: ${imagePath}`);
+    };
+    
     img.addEventListener('click', () => {
       const dropZones = document.querySelectorAll('.drop-zone');
       const filledZones = document.querySelectorAll('.drop-zone img');
