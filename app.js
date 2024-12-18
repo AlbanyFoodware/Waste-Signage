@@ -490,3 +490,14 @@ function addImageToDropZone(dropZone, imageSrc) {
   dropZone.innerHTML = '';
   dropZone.appendChild(imgContainer);
 }
+
+function loadImage(imageNumber) {
+    const baseUrl = "https://albanyfoodware.github.io/Waste-Signage/Foodware%20Images/";
+    const img = new Image();
+    img.onerror = () => {
+        console.warn(`Image ${imageNumber} not found, falling back to image21`);
+        img.src = baseUrl + "image21.jpg";
+    };
+    img.src = baseUrl + `image${imageNumber}.jpg`;
+    return img;
+}
